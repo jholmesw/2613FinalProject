@@ -227,7 +227,7 @@ public class Solver {
                 for (int w = 0; w < airports.size(); w++) {
                     for (int i = 0; i < flightRoutes.get(j).get(k).getU(); i++) {
                         for (int z = 0; z < flightRoutes.get(w).get(k).getU(); z++) {
-                            if (j!=k && w!=k && j!=w) {
+                            if (j!=k && w!=k && (j!=w && i!=z)) {
                                 MPConstraint landing1 = solver.makeConstraint(negInf, (airports.get(w).getT() + flightRoutes.get(w).get(k).getF() + M) - airports.get(j).getT() - flightRoutes.get(j).get(k).getF() - airports.get(k).getT());
                                 landing1.setCoefficient(x.get(j).get(k).get(i), 1);
                                 landing1.setCoefficient(x.get(w).get(k).get(z), -1);
@@ -245,7 +245,7 @@ public class Solver {
                 for (int w = 0; w < airports.size(); w++) {
                     for (int i = 0; i < flightRoutes.get(j).get(k).getU(); i++) {
                         for (int z = 0; z < flightRoutes.get(w).get(k).getU(); z++) {
-                            if (j!=k && w!=k && j!=w) {
+                            if (j!=k && w!=k && (j!=w && i!=z)) {
                                 MPConstraint landing2 = solver.makeConstraint(negInf, -(airports.get(w).getT() + flightRoutes.get(w).get(k).getF() + airports.get(k).getT()) + airports.get(j).getT() + flightRoutes.get(j).get(k).getF());
                                 landing2.setCoefficient(x.get(j).get(k).get(i), -1);
                                 landing2.setCoefficient(x.get(w).get(k).get(z), 1);

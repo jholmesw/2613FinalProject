@@ -18,9 +18,6 @@ var y{k in 1..m, l in 1..m, n in 1..m, i in 1..u[k,l], j in 1..u[k,n]: k<>l && k
 ## 1 if flight i on k->l before flight j on n->l ; 0 otherwise a[k,l,n,i,j]
 var a{k in 1..m, l in 1..m, n in 1..m, i in 1..u[k,l], j in 1..u[n,l]: k<>l && n<>l}, binary;
 
-## 1 if flight i on k->l before flight j on l->n ; 0 otherwise b[k,l,n,i,j]
-#var b{k in 1..m, l in 1..m, n in 1..m, i in 1..u[k,l], j in 1..u[l,n]: k<>l && l<>n}, binary;
-
 var q; #minimization objective value sort of
 
 #Objective
@@ -39,12 +36,8 @@ subject to either_or2{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u
 
 
 ## landing at same airport scheduling
-subject to either_or3{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[w,k]: j<>k && w<>k && j<>w}: x[j,k,i] + t[j] + f[j,k] + t[k] <= x[w,k,z] + t[w] + f[w,k] + M*(1-a[j,k,w,i,z]);
-subject to either_or4{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[w,k]: j<>k && w<>k && j<>w}: x[w,k,z] + t[w] + f[w,k] + t[k] <= x[j,k,i] + t[j] + f[j,k] + M*a[j,k,w,i,z];
-
-## one flight arriving/one flight landing at same airport scheduling
-#subject to either_or5{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[k,w]: j<>k && k<>w}: x[j,k,i] + t[j] + f[j,k] + t[k] <= x[k,w,z] + M*(1-b[j,k,w,i,z]);
-#subject to either_or6{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[k,w]: j<>k && k<>w}: x[k,w,z] + t[w] + f[k,w] + t[k] <= x[j,k,i] + M*b[j,k,w,i,z];
+subject to either_or3{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[w,k]: j<>k && w<>k && (j<>w && i<>z)}: x[j,k,i] + t[j] + f[j,k] + t[k] <= x[w,k,z] + t[w] + f[w,k] + M*(1-a[j,k,w,i,z]);
+subject to either_or4{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[w,k]: j<>k && w<>k && (j<>w && i<>z)}: x[w,k,z] + t[w] + f[w,k] + t[k] <= x[j,k,i] + t[j] + f[j,k] + M*a[j,k,w,i,z];
 
 ## flights on the same route should be a specified time apart
 subject to either_or7{j in 1..m, k in 1..m, i in 1..u[j,k], z in 1..u[j,k]: i<>z && j<>k}: x[j,k,i] + S <= x[j,k,z] + M*(1-y[j,k,k,i,z]);
