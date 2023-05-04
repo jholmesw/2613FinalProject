@@ -1,0 +1,54 @@
+#Definition of indices and parameters
+param m;					#number of airports
+param S := 40;
+param M := 1440;				#big number of time for binary variables
+param t{i in 1..m};			#taxi time at airport i
+param f{i in 1..m, j in 1..m};	#flight time (in air) for route i -> j
+param u{i in 1..m, j in 1..m};	#number of flights for route i -> j
+param o{i in 1..m};			#open time for airport i
+param c{i in 1..m};			#closing time for airport i
+param u_max_arrive{i in 1..m};	#maximum number of flights arriving at airport i from other airports
+param u_max_depart{i in 1..m};	#maximum number of flights departing airport i to other airports
+
+#Decision variables
+##start time of flight i from j -> k (x[j,k,i])
+var x{j in 1..m, k in 1..m, i in 1..u[j,k]: j <> k} >= 0;
+
+## 1 if flight i on k->l before flight j from k->n ; 0 otherwise y[k,l,n,i,j]
+var y{k in 1..m, l in 1..m, n in 1..m, i in 1..u[k,l], j in 1..u[k,n]: k<>l && k<>n}, binary;
+
+## 1 if flight i on k->l before flight j on n->l ; 0 otherwise a[k,l,n,i,j]
+var a{k in 1..m, l in 1..m, n in 1..m, i in 1..u[k,l], j in 1..u[n,l]: k<>l && n<>l}, binary;
+
+## 1 if flight i on k->l before flight j on l->n ; 0 otherwise b[k,l,n,i,j]
+#var b{k in 1..m, l in 1..m, n in 1..m, i in 1..u[k,l], j in 1..u[l,n]: k<>l && l<>n}, binary;
+
+var q; #minimization objective value sort of
+
+#Objective
+minimize late_penalty: q - c[1];
+
+subject to linking{j in 2..m, i in 1..u[j,1]}: q >= x[j, 1, i] + t[1] + t[j] + f[j, 1];
+
+#Constraints
+subject to airport_open{j in 1..m, k in 1..m, i in 1..u[j,k]: j<>k}: x[j,k,i] >= o[j];
+subject to airport_close{j in 1..m, k in 1..m, i in 1..u[j,k]: j<>k}: x[j,k,i] <= c[j];
+
+
+## takeoff at same airport scheduling
+subject to either_or1{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[j,w]: j<>k && j<>w && (w<>k && i<>z)}: x[j,k,i] + t[j] <= x[j,w,z] + M*(1-y[j,k,w,i,z]);
+subject to either_or2{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[j,w]: j<>k && j<>w && (w<>k && i<>z)}: x[j,w,z] + t[j] <= x[j,k,i] + M*y[j,k,w,i,z];
+
+
+## landing at same airport scheduling
+subject to either_or3{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[w,k]: j<>k && w<>k && j<>w}: x[j,k,i] + t[j] + f[j,k] + t[k] <= x[w,k,z] + t[w] + f[w,k] + M*(1-a[j,k,w,i,z]);
+subject to either_or4{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[w,k]: j<>k && w<>k && j<>w}: x[w,k,z] + t[w] + f[w,k] + t[k] <= x[j,k,i] + t[j] + f[j,k] + M*a[j,k,w,i,z];
+
+## one flight arriving/one flight landing at same airport scheduling
+#subject to either_or5{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[k,w]: j<>k && k<>w}: x[j,k,i] + t[j] + f[j,k] + t[k] <= x[k,w,z] + M*(1-b[j,k,w,i,z]);
+#subject to either_or6{j in 1..m, k in 1..m, w in 1..m, i in 1..u[j,k], z in 1..u[k,w]: j<>k && k<>w}: x[k,w,z] + t[w] + f[k,w] + t[k] <= x[j,k,i] + M*b[j,k,w,i,z];
+
+## flights on the same route should be a specified time apart
+subject to either_or7{j in 1..m, k in 1..m, i in 1..u[j,k], z in 1..u[j,k]: i<>z && j<>k}: x[j,k,i] + S <= x[j,k,z] + M*(1-y[j,k,k,i,z]);
+subject to either_or8{j in 1..m, k in 1..m, i in 1..u[j,k], z in 1..u[j,k]: i<>z && j<>k}: x[j,k,z] + S <= x[j,k,i] + M*y[j,k,k,i,z];
+
