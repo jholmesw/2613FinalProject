@@ -27,7 +27,7 @@ public class Solver {
         double obj = -1300;
         int open = 0;
 
-        for (int i = 300; i <= 1000; i+= 100) {
+        for (int i = 360; i <= 1020; i+= 60) {
             for (int j = 0; j < airports.size(); j++) {
                 airports.get(j).setO(i);
             }
