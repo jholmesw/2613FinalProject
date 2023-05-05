@@ -1,7 +1,7 @@
 #Definition of indices and parameters
 param m;					#number of airports
-param S := 40;				#Specified time in between flights on same route
-param M := 1440;				#big number of time for binary variables
+param S;				#Specified time in between flights on same route
+param M;					#big number of time for binary variables
 param t{i in 1..m};			#taxi time at airport i
 param f{i in 1..m, j in 1..m};	#flight time (in air) for route i -> j
 param u{i in 1..m, j in 1..m};	#number of flights for route i -> j
