@@ -16,22 +16,30 @@ import java.util.Scanner;
 
 public class Solver {
     public static void main(String[] args) throws IOException {
+
+        //Creating lists with data and solutions
         ArrayList<Airport> airports = readAirportData();
         ArrayList<ArrayList<FlightRoute>> flightRoutes = readFlightData();
         ArrayList<ArrayList<ArrayList<Double>>> tempX = new ArrayList<>();
 
         //Testing to see if data read in correctly
-        System.out.println(airports);
-        System.out.println(flightRoutes);
+        /*System.out.println(airports);
+        System.out.println(flightRoutes);*/
 
+        //Setting iterators
         double obj = -1300;
         int open = 0;
 
+        //Running through each solution
         for (int i = 360; i <= 1020; i+= 60) {
+            //Setting airport open times
             for (int j = 0; j < airports.size(); j++) {
                 airports.get(j).setO(i);
             }
+            //Solving
              obj = solveSchedule(airports,flightRoutes,tempX);
+
+            //If objective is positive exit the loop
             if (obj > 0) {
                 open = i;
                 break;
@@ -39,6 +47,7 @@ public class Solver {
             open = i;
         }
 
+        //Print out final values and the open time.
         System.out.println(open);
         System.out.println(obj);
         System.out.println(tempX);
@@ -48,6 +57,7 @@ public class Solver {
                 .withType(Airport.class).build().parse();
     }
 
+    //Reading in flight data hackwise since list of list
     public static ArrayList<ArrayList<FlightRoute>> readFlightData() throws IOException {
         ArrayList<ArrayList<FlightRoute>> flights = new ArrayList<>();
 
@@ -92,6 +102,7 @@ public class Solver {
         return flights;
     }
 
+    //Solver method with xVars being the solution DVs
     public static double solveSchedule(ArrayList<Airport> airports, ArrayList<ArrayList<FlightRoute>> flightRoutes, ArrayList<ArrayList<ArrayList<Double>>> xVars) {
         Loader.loadNativeLibraries();
 
@@ -185,6 +196,7 @@ public class Solver {
         // Setting Constraints //////////////////////////////////////////////////////////////////////////////////////
 
 
+        //either_or1
         //x[j,k,i] -  x[j,w,z] + M * y[j,k,w,i,z] <= - t[j] + M;
         for (int j = 0; j < airports.size(); j++) {
             for (int k = 0; k < airports.size(); k++) {
@@ -203,6 +215,7 @@ public class Solver {
             }
         }
 
+        //either_or2
         //x[j,w,z] -x[j,k,i] - M*y[j,k,w,i,z] <=  - t[j] ;
         for (int j = 0; j < airports.size(); j++) {
             for (int k = 0; k < airports.size(); k++) {
@@ -221,6 +234,7 @@ public class Solver {
             }
         }
 
+        //either_or3
         //x[j,k,i] -x[w,k,z] + M* a[j,k,w,i,z] <=  + t[w] + f[w,k] + M - ( t[j] + f[j,k] + t[k]);
         for (int j = 0; j < airports.size(); j++) {
             for (int k = 0; k < airports.size(); k++) {
@@ -239,6 +253,7 @@ public class Solver {
             }
         }
 
+        //either_or4
         // x[w,k,z] -x[j,k,i] -M*a[j,k,w,i,z] <=  + t[j] + f[j,k] +  - (+ t[w] + f[w,k] + t[k]);
         for (int j = 0; j < airports.size(); j++) {
             for (int k = 0; k < airports.size(); k++) {
@@ -258,6 +273,7 @@ public class Solver {
         }
 
 
+        //either_or5
         // x[j,k,i] - x[j,k,z] + M * y[j,k,k,i,z] <= -S + M;
         for (int j = 0; j < airports.size(); j++) {
             for (int k = 0; k < airports.size(); k++) {
@@ -276,6 +292,7 @@ public class Solver {
             }
         }
 
+        //either_or6
         // x[j,k,z] - x[j,k,i] - M*y[j,k,k,i,z] <= -S;
         for (int j = 0; j < airports.size(); j++) {
             for (int k = 0; k < airports.size(); k++) {
@@ -294,6 +311,7 @@ public class Solver {
             }
         }
 
+        //open
         //x[j,k,i] >= o[j];
         for (int j = 0; j < airports.size(); j++) {
             for (int k = 0; k < airports.size(); k++) {
@@ -306,6 +324,7 @@ public class Solver {
             }
         }
 
+        //close
         //x[j,k,i] <= c[j];
         for (int j = 0; j < airports.size(); j++) {
             for (int k = 0; k < airports.size(); k++) {
@@ -319,6 +338,7 @@ public class Solver {
         }
 
 
+        //linking
         //q -x[j, 1, i] >=   t[1] + t[j] + f[j, 1];
         for (int j = 1; j < airports.size(); j++) {
             for (int i = 0; i < flightRoutes.get(j).get(0).getU(); i++) {
@@ -332,6 +352,7 @@ public class Solver {
         // Setting objective //////////////////////////////////////////////////////////////////////////////////////////
 
 
+        //late_penalty
         MPObjective latePenalty = solver.objective();
 
         latePenalty.setCoefficient(q, 1);
@@ -339,6 +360,7 @@ public class Solver {
 
         latePenalty.setMinimization();
 
+        //adding log of solver and setting time limit to 10 seconds
         solver.enableOutput();
         solver.setTimeLimit(10*1000);
 
@@ -361,6 +383,7 @@ public class Solver {
             return latePenalty.value();
 
         } else {
+            //Printing to see if infeasible or feasible
             System.out.println(resultStatus);
             for (int i = 0; i < x.size(); i++) {
                 ArrayList<ArrayList<Double>> temp = new ArrayList<>();
