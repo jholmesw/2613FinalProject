@@ -1,4 +1,4 @@
-# 2613FinalProject
+# Introduction to Operations Research Final Project
 
 Java implementation of a MIP (Mixed-Integer Programming) assignment problem testing airport flight scheduling in a local experiment.
 
